@@ -1,7 +1,7 @@
 use v6;
 use Test;
 
-plan 163;
+plan 185;
 
 ## N.B.:  Tests for infix:«<=>» (spaceship) and infix:<cmp> belong
 ## in F<t/S03-operators/comparison.t>.
@@ -201,12 +201,61 @@ is(2.4 >  7, False, 'Rat >  Int');
 is(2.4 >= 7, False, 'Rat >= Int');
 is(2.4 <=> 7, Order::Less, 'Rat <=> Int');
 
+# approximate equality (≅/=~=) tests
 ok exp(i * pi) =~= -1, "=~= does approximate equality";
 ok exp(i * pi) ≅ -1, "≅ does approximate equality";
  
 is sqrt((-1).Complex) ≅ 0+1i, True, "can use approximate on Complex with negligible real";
 is sqrt((-1).Complex) ≅ 0+2i, False, "can use approximate on Complex with non-negligible real";
 is sqrt((-1).Complex) ≅ 0+(1+1e-17)i, True, "can use approximate on Complex";
+
+# test ≅/=~= with some common numbers
+ok 0 ≅ 0, '0 is approximately equal to itself';
+ok 1 ≅ 1, '1 is approximately equal to itself';
+ok 0 =~= 0, '0 is approximately equal (Texas-style) to itself';
+ok 1 =~= 1, '1 is approximately equal (Texas-style) to itself';
+
+# test ≅/=~= default tolerance
+ok 1.000000000000001 ≅ 1, 'test default tolerance';
+nok 1.000000000000002 ≅ 1, 'test default tolerance';
+ok 1.000000000000001 =~= 1, 'test default tolerance (Texas-style)';
+nok 1.000000000000002 =~= 1, 'test default tolerance (Texas-style)';
+ok (2**32 - $*TOLERANCE) ≅ 2**32, 'test large numbers';
+ok (2**32 + $*TOLERANCE) ≅ 2**32, 'test large numbers';
+
+# test ≅/=~= chaining
+ok 1.000000000000001 ≅ 1 ≅ .9999999999999999, 'test chaining';
+ok 1.000000000000001 =~= 1 =~= .9999999999999999, 'test chaining (Texas-style)';
+ok 1.000000000000001 ≅ 1 =~= .9999999999999999, 'test chaining (mixed style)';
+
+# test some ≅/=~= boundary conditions of tolerance
+ok (1 - $*TOLERANCE) ≅ 1, 'test boundaries of tolerance, 1-';
+#?rakudo skip '1 + $*TOLERANCE does not work'
+#?rakudo.jvm skip '1 + $*TOLERANCE does not work'
+ok (1 + $*TOLERANCE) ≅ 1, 'test boundaries of tolerance, 1+';
+#?rakudo skip '0 - $*TOLERANCE does not work'
+#?rakudo.jvm skip '0 - $*TOLERANCE does not work'
+ok (0 - $*TOLERANCE) ≅ 0, 'test boundaries of tolerance, 0-';
+#?rakudo skip '0 + $*TOLERANCE does not work'
+#?rakudo.jvm skip '0 + $*TOLERANCE does not work'
+ok (0 + $*TOLERANCE) ≅ 0, 'test boundaries of tolerance, 0+';
+#?rakudo skip '$*TOLERANCE + $*TOLERANCE does not work'
+#?rakudo.jvm skip '$*TOLERANCE + $*TOLERANCE does not work'
+ok ($*TOLERANCE + $*TOLERANCE) ≅ $*TOLERANCE, 'test boundaries of tolerance';
+
+# changing the tolerance of ≅/=~= via adverb currently fails during compilation
+#?rakudo skip 'changing the tolerance of ≅ via adverb currently fails during compilation'
+#?rakudo.jvm skip 'changing the tolerance of ≅ via adverb currently fails during compilation'
+eval-lives-ok '(2 - $*TOLERANCE) ≅ 2 :tolerance(0.1)', 'test changing the tolerance of ≅ via adverb';
+#?rakudo skip 'changing the tolerance of ≅ in a chain via adverb currently fails during compilation'
+#?rakudo.jvm skip 'changing the tolerance of ≅ in a chain via adverb currently fails during compilation'
+eval-lives-ok '(2 - $*TOLERANCE) ≅ 2 ≅ (2 + $*TOLERANCE) :tolerance(0.1)', 'test changing the tolerance of ≅ in a chain via adverb';
+#?rakudo skip 'changing the tolerance of =~= via adverb currently fails during compilation'
+#?rakudo.jvm skip 'changing the tolerance of =~= via adverb currently fails during compilation'
+eval-lives-ok '(2 - $*TOLERANCE) =~= 2 :tolerance(0.1)', 'test changing the tolerance of =~= via adverb';
+#?rakudo skip 'changing the tolerance of =~= in a chain via adverb currently fails during compilation'
+#?rakudo.jvm skip 'changing the tolerance of =~= in a chain via adverb currently fails during compilation'
+eval-lives-ok '(2 - $*TOLERANCE) =~= 2 =~= (2 + $*TOLERANCE) :tolerance(0.1)', 'test changing the tolerance of =~= in a chain via adverb';
 
 {
     my $*TOLERANCE = 0.1;
