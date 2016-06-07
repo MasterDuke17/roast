@@ -243,7 +243,7 @@ ok (0 + $*TOLERANCE) ≅ 0, 'test boundaries of tolerance, 0+';
 #?rakudo.jvm skip '$*TOLERANCE + $*TOLERANCE does not work'
 ok ($*TOLERANCE + $*TOLERANCE) ≅ $*TOLERANCE, 'test boundaries of tolerance';
 
-# changing the tolerance of ≅/=~= via adverb currently fails during compilation
+# changing the tolerance of ≅/=~= via adverb currently fails during compilation (see RT #128210)
 #?rakudo skip 'changing the tolerance of ≅ via adverb currently fails during compilation'
 #?rakudo.jvm skip 'changing the tolerance of ≅ via adverb currently fails during compilation'
 eval-lives-ok '(2 - $*TOLERANCE) ≅ 2 :tolerance(0.1)', 'test changing the tolerance of ≅ via adverb';
